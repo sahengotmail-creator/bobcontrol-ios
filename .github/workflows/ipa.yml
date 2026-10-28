@@ -1,0 +1,28 @@
+# Compiles the Unity-exported Xcode project into an unsigned .ipa.
+# Sideloadly signs it with the player's own Apple ID when installing.
+name: Build unsigned IPA
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Build
+        run: |
+          xcodebuild -project Unity-iPhone.xcodeproj -scheme Unity-iPhone -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build | tail -n 40
+          mkdir Payload
+          cp -R dd/Build/Products/Release-iphoneos/*.app Payload/
+          zip -qry BobControl.ipa Payload
+          ls -lh BobControl.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BobControl-ipa
+          path: BobControl.ipa
+          retention-days: 30
