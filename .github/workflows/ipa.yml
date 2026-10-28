@@ -12,8 +12,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - name: Restore executable bits lost on Windows
+        run: |
+          find . -name "*.sh" -exec chmod +x {} +
+          chmod -R +x Il2CppOutputProject/IL2CPP/build
       - name: Build
         run: |
+          set -o pipefail
           xcodebuild -project Unity-iPhone.xcodeproj -scheme Unity-iPhone -configuration Release \
             -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath dd \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build | tail -n 40
